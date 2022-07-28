@@ -64,6 +64,28 @@ def getAPIDetails(workbook, apiName, apidetailRequired):
         return ValueError
     else:
         return sheet.cell(row=rowNumber, column=columnNumber).value
+    
+def set_cell_value(excel_path, row_value, column_name, value):
+    i = 0
+    while i <10:
+        try:
+             with open(excel_path, 'a') as myfile:
+                fcntl.flock(myfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                workbook = openpyxl.load_workbook(filename= excel_path)
+                sheet = initializeSheet(workbook, "result")
+                column_number = getColumnNumberFromName(workbook, sheet, column_name)
+                row_number = getRowNumberFromValue(workbook,sheet,"TestCase", row_value)
+                current_cell = sheet.cell(row=row_number, column=column_number)
+                current_cell.value = value
+                workbook.save(excel_path)
+                workbook.close()
+                fcntl.flock(myfile, fcntl.LOCK_UN)
+                return "Success"
+        except Exception as e:
+            logger.info(f"Writing to excel failed due to error {str(e)}")
+            time.sleep(1)
+            i +=1
+    return "Failure"
 
 
 def getAPIValidations(workbook, apiName):
